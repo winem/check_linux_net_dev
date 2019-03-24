@@ -1,0 +1,190 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import os
+import sys
+import time
+
+def main(args):
+    chk_msg             = {}
+    chk_msg_prefix      = 'NETWORK DEVICE MONITOR'
+    chk_state           = 0
+    chk_state_strings   = [ 'OK', 'WARNING', 'CRTITCAL', 'UNKNOWN' ]
+    chk_tmp_file        = '/tmp/' + args.device + '_check_net_dev.tmp'
+    proc_f_path         = '/proc/net/dev'
+    
+    if os.path.isfile(chk_tmp_file):
+        try:
+            old_t_file  = open(chk_tmp_file, 'r')
+        except OSError:
+            print('{} UNKNOWN - {} exists but is not readable.'.format(chk_msg_prefix, chk_tmp_file))
+            sys.exit(3)
+        else:
+            with old_t_file:
+                tmp_metrics = json.load(old_t_file)
+
+    else:
+        tmp_metrics = None
+
+    try:
+        net_f = open(proc_f_path, 'r')
+    except IOError:
+        print('{} UNKNOWN - {} is not readable.'.format(chk_msg_prefix, proc_f_path))
+        sys.exit(3)
+    else:
+        with net_f:
+
+            first_line  = True
+            metrics     = {}
+            metric_cnt  = 0
+
+            for line in net_f:
+                if first_line:
+                    first_line = False
+                    continue
+                else:
+                    if line.strip().startswith('face'):
+                        metrics_header  = line.strip().split('|')
+                        rx_metrics      = metrics_header[1].split()
+                        tx_metrics      = metrics_header[2].split()
+
+                    if line.strip().startswith(args.device + ':'):
+                        interface_stats = line.strip().split()
+
+                        for m in rx_metrics:
+                            metric          = 'rx_{}'.format(m)
+                            metrics[metric] = int(interface_stats[1 + metric_cnt])
+                            metric_cnt      += 1
+                            chk_msg[metric] = '{} is {!s}'.format(metric, metrics[metric])
+
+                        for m in tx_metrics:
+                            metric          = 'tx_{}'.format(m)
+                            metrics[metric] = int(interface_stats[1 + metric_cnt])
+                            metric_cnt      += 1
+                            chk_msg[metric] = '{} is {!s}'.format(metric, metrics[metric])
+
+    metrics['timestamp']    = int(time.time())
+
+    if tmp_metrics:
+        tmp_data_valid      = True if metrics['timestamp'] - tmp_metrics['timestamp'] < args.svc_chk_interval + 5  else False
+
+    try:
+        with open(chk_tmp_file, 'w') as t_file:
+            t_file.write(json.dumps(metrics))
+    except OSError:
+        print('{} UNKNOWN - {} is not writable.'.format(chk_msg_prefix, chk_tmp_file))
+        sys.exit(3)
+
+    if tmp_metrics and tmp_data_valid:
+        print('create detla')
+        metrics, chk_msg = updateMetricsToDelta(metrics, tmp_metrics, chk_msg)
+
+    if args.rx_bytes_warn or args.rx_bytes_crit:
+        metrics, chk_msg, chk_state = checkMetricsAgainstThresholds(metrics, 'rx_bytes', chk_state, chk_msg, args.rx_bytes_warn, args.rx_bytes_crit)
+
+    if args.rx_drops_warn or args.rx_drops_crit:
+        metrics, chk_msg, chk_state = checkMetricsAgainstThresholds(metrics, 'rx_drop', chk_state, chk_msg, args.rx_drops_warn, args.rx_drops_crit)
+
+    if args.rx_errors_warn or args.rx_errors_crit:
+        metrics, chk_msg, chk_state = checkMetricsAgainstThresholds(metrics, 'rx_errs', chk_state, chk_msg, args.rx_errors_warn, args.rx_errors_crit)
+
+    if args.tx_bytes_warn or args.tx_bytes_crit:
+        print('txbytescrit')
+        metrics, chk_msg, chk_state = checkMetricsAgainstThresholds(metrics, 'tx_bytes', chk_state, chk_msg, args.tx_bytes_warn, args.tx_bytes_crit)
+
+    if args.tx_drops_warn or args.tx_drops_crit:
+        metrics, chk_msg, chk_state = checkMetricsAgainstThresholds(metrics, 'tx_drop', chk_state, chk_msg, args.tx_drops_warn, args.tx_drops_crit)
+
+    if args.tx_errors_warn or args.tx_errors_crit:
+        metrics, chk_msg, chk_state = checkMetricsAgainstThresholds(metrics, 'tx_errs', chk_state, chk_msg, args.tx_errors_warn, args.tx_errors_crit)
+
+    perf_data       = (' '.join("{!s}={!s}".format(k,v) for (k,v) in metrics.items()))
+    chk_msg_string  = (';'.join("{!s}".format(v) for (k, v) in chk_msg.items()))
+
+    composed_output = ' '.join((chk_msg_prefix, chk_state_strings[chk_state], '-', chk_msg_string, '|', perf_data))
+
+    print(composed_output)
+    sys.exit(chk_state)
+
+
+def checkMetricsAgainstThresholds(m, m_name, c_state, c_msg,  m_warn=None, m_crit=None):
+    if m_crit and m[m_name] > m_crit:
+        c_state         = 2
+        c_msg[m_name]   = '{} is > {} ({})'.format(m_name, m_crit, m[m_name])
+
+    elif m_warn and m[m_name] > m_warn:
+        if c_state != 2:
+            c_state     = 1
+        
+        c_msg[m_name]   = '{} is > {} ({})'.format(m_name, m_warn, m[m_name])
+
+    else:
+        if c_state not in (1, 2):
+            c_state = 0
+        
+        c_msg[m_name]   = '{} is {}'.format(m_name, m[m_name])
+
+    if m_name in ('tx_bytes', 'rx_bytes'):
+        pd_value    = '{}B'.format(m[m_name])
+    else:
+        pd_value    = m[m_name]
+
+    pd_warn         = m_warn if m_warn else ''
+    pd_crit         = m_crit if m_crit else ''
+    
+    m[m_name]       = '{};{};{}'.format(pd_value, pd_warn, pd_crit).strip(';')
+    return m, c_msg, c_state
+
+
+def parseArgs():
+    argParser = argparse.ArgumentParser(description='Provide statistics about network interfaces.')
+    argParser.add_argument('-d', '--device', dest='device', required=True, \
+                            help='Monitored interface (examples: virbr0, eth0, ens192)')
+    argParser.add_argument('-i', '--svc-chk-interval', dest='svc_chk_interval', required=True, type=int, \
+                            help='Service check interval (seconds) to validate the data in --temp-file. \
+                                  Values in --temp-file older than this + 5 will be ignored.')
+    argParser.add_argument('--rx-bytes-warn', dest='rx_bytes_warn', type=int, default = False, \
+                            help='Warning threshold for received bytes.')
+    argParser.add_argument('--rx-bytes-crit', dest='rx_bytes_crit', type=int, default=False, \
+                            help='Critical threshold for received bytes.')
+    argParser.add_argument('--rx-drops-warn', dest='rx_drops_warn', type=int, default=False, \
+                            help='Warning threshold for dropped received packets.')
+    argParser.add_argument('--rx-drops-crit', dest='rx_drops_crit', type=int, default=False, \
+                            help='Critical threshold for dropped received packets.')
+    argParser.add_argument('--rx-errors-warn', dest='rx_errors_warn', type=int, default=False, \
+                            help='Warning threshold for received faulty packets.')
+    argParser.add_argument('--rx-errors-crit', dest='rx_errors_crit', type=int, default=False, \
+                            help='Critical threshold for received faulty packets.')
+    argParser.add_argument('--tx-bytes-warn', dest='tx_bytes_warn', type=int, default=False, \
+                            help='Warning threshold for transmitted bytes.')
+    argParser.add_argument('--tx-bytes-crit', dest='tx_bytes_crit', type=int, default=False, \
+                            help='Critical threshold for eceived bytes.')
+    argParser.add_argument('--tx-drops-warn', dest='tx_drops_warn', type=int, default=False, \
+                            help='Warning threshold for dropped transmitted packets.')
+    argParser.add_argument('--tx-drops-crit', dest='tx_drops_crit', type=int, default=False, \
+                            help='Critical threshold for dropped transmitted packets.')
+    argParser.add_argument('--tx-errors-warn', dest='tx_errors_warn', type=int, default=False, \
+                            help='Warning threshold for transmitted faulty packets.')
+    argParser.add_argument('--tx-errors-crit', dest='tx_errors_crit', type=int, default=False, \
+                            help='Critical threshold for transmitted faulty packets.')
+    argParser.add_argument('--temp-file', dest='temp_file', \
+                            help='File name of the temp file to compute the differences. \
+                                  The file will be stored in /tmp unless the value is a absolute path.\
+                                  "/tmp/ + device + _check_net_dev.tmp" will be used per default.')
+
+    return argParser.parse_args()
+
+
+def updateMetricsToDelta(metrics, tmp_metrics, c_msg):
+    for m in metrics:
+        if m in tmp_metrics:
+            metrics[m] -= tmp_metrics[m]
+            c_msg[m]    = '{} is {}'.format(m, metrics[m])
+
+    return metrics, c_msg
+
+
+if __name__ == "__main__":
+    args = parseArgs()
+    main(args)
