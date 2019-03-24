@@ -16,11 +16,16 @@ So I came up with this little Python3 script.
   - sys
   - time
 
+## Dependencies and prerequisites
+This script was tested on Ubuntu 16.04 & 18.04 and RedHat / Centos 6 & 7. There are no root privileges required to read from `/proc/net/dev`. 
+This script needs a temp file to store the metrics from the last check and compare the delta. Per default, it will use `/tmp/' + args.device + '_check_net_dev.tmp`. You can override this by specifying another file by using `--temp-file` you want to use another location due to any restrictions in your environment.
+
+## Usage
+Run `./check_net_dev -h` for a detailed help message and overview of all supported parameters.
+
 ## Current ideas for further improvements:
   - generic handling of thresholds (i.e. not only if rx bytes > x; but also rx bytes < y)
   - be more user-friendly (i.e. input validation and sanity checks & a warning if warn > crit)
   - additional testing in container
   - review for more robust error and exception handling
 
-## Usage
-Run `./check_net_dev -h` for a detailed help message and overview of all supported parameters.
