@@ -39,18 +39,18 @@ def main(args):
             metrics     = {}
             metric_cnt  = 0
 
-            for line in net_f:
+            for ln in net_f:
                 if first_line:
                     first_line = False
                     continue
                 else:
-                    if line.strip().startswith('face'):
-                        metrics_header  = line.strip().split('|')
+                    if ln.strip().startswith('face'):
+                        metrics_header  = ln.strip().split('|')
                         rx_metrics      = metrics_header[1].split()
                         tx_metrics      = metrics_header[2].split()
 
-                    if line.strip().startswith(args.device + ':'):
-                        interface_stats = line.strip().split()
+                    if ln.strip().startswith(args.device + ':'):
+                        interface_stats = ln.strip().split()
 
                         for m in rx_metrics:
                             metric          = 'rx_{}'.format(m)
@@ -144,7 +144,7 @@ def parseArgs():
     argParser.add_argument('-i', '--svc-chk-interval', dest='svc_chk_interval', required=True, type=int, \
                             help='Service check interval (seconds) to validate the data in --temp-file. \
                                   Values in --temp-file older than this + 5 will be ignored.')
-    argParser.add_argument('--rx-bytes-warn', dest='rx_bytes_warn', type=int, default = False, \
+    argParser.add_argument('--rx-bytes-warn', dest='rx_bytes_warn', type=int, default=False, \
                             help='Warning threshold for received bytes.')
     argParser.add_argument('--rx-bytes-crit', dest='rx_bytes_crit', type=int, default=False, \
                             help='Critical threshold for received bytes.')
