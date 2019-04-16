@@ -77,7 +77,6 @@ def main(args):
         sys.exit(3)
 
     if tmp_metrics and tmp_data_valid:
-        print('create detla')
         metrics, chk_msg = updateMetricsToDelta(metrics, tmp_metrics, chk_msg)
 
     if args.rx_bytes_warn or args.rx_bytes_crit:
@@ -90,7 +89,6 @@ def main(args):
         metrics, chk_msg, chk_state = checkMetricsAgainstThresholds(metrics, 'rx_errs', chk_state, chk_msg, args.rx_errors_warn, args.rx_errors_crit)
 
     if args.tx_bytes_warn or args.tx_bytes_crit:
-        print('txbytescrit')
         metrics, chk_msg, chk_state = checkMetricsAgainstThresholds(metrics, 'tx_bytes', chk_state, chk_msg, args.tx_bytes_warn, args.tx_bytes_crit)
 
     if args.tx_drops_warn or args.tx_drops_crit:
