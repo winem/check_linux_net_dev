@@ -23,6 +23,17 @@ This script needs a temp file to store the metrics from the last check and compa
 ## Usage
 Run `./check_net_dev -h` for a detailed help message and overview of all supported parameters.
 
+
+## Examples
+### Without thresholds
+`./check_net_dev -d wlan0 --svc-chk-interval 60` - network device statistics for wlan0
+`./check_net_dev -d tun0 --svc-chk-interval 300` - network device statistics for tun0 with a service check interval of 300 seconds
+
+### With thresholds
+`./check_net_dev -d wlan0 --svc-chk-interval 60 --tx-bytes-warn 300` - network device statistics for tun0 with a warning threshold for transmitted bytes of 300
+`./check_net_dev -d wlan0 --svc-chk-interval 60 --tx-bytes-wanr 300 --rx-bytes-crit 3000 --tx-drops-crit 1000 --tx-errors-warn 100` same as above + additional thresholds
+
+
 ## Current ideas for further improvements:
   - generic handling of thresholds (i.e. not only if rx bytes > x; but also rx bytes < y)
   - be more user-friendly (i.e. input validation and sanity checks & a warning if warn > crit)
