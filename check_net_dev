@@ -139,7 +139,7 @@ def parseArgs():
     argParser = argparse.ArgumentParser(description='Provide statistics about network interfaces.')
     argParser.add_argument('-d', '--device', dest='device', required=True, \
                             help='Monitored interface (examples: virbr0, eth0, ens192)')
-    argParser.add_argument('-i', '--svc-chk-interval', dest='svc_chk_interval', required=True, type=int, \
+    argParser.add_argument('--svc-chk-interval', dest='svc_chk_interval', required=True, type=int, \
                             help='Service check interval (seconds) to validate the data in --temp-file. \
                                   Values in --temp-file older than this + 5 will be ignored.')
     argParser.add_argument('--rx-bytes-warn', dest='rx_bytes_warn', type=int, default=False, \
