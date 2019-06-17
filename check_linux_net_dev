@@ -11,7 +11,7 @@ def main(args):
     chk_msg_prefix      = 'NETWORK DEVICE MONITOR'
     chk_state           = 0
     chk_state_strings   = [ 'OK', 'WARNING', 'CRTITCAL', 'UNKNOWN' ]
-    chk_tmp_file        = '/tmp/' + args.device + '_check_net_dev.tmp'
+    chk_tmp_file        = '/tmp/' + args.device + '_check_linux_net_dev.tmp'
     proc_f_path         = '/proc/net/dev'
     
     if os.path.isfile(chk_tmp_file):
@@ -169,7 +169,7 @@ def parseArgs():
     argParser.add_argument('--temp-file', dest='temp_file', \
                             help='File name of the temp file to compute the differences. \
                                   The file will be stored in /tmp unless the value is a absolute path.\
-                                  "/tmp/ + device + _check_net_dev.tmp" will be used per default.')
+                                  "/tmp/ + device + _check_linux_net_dev.tmp" will be used per default.')
 
     return argParser.parse_args()
 
