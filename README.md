@@ -18,20 +18,20 @@ So I came up with this little Python3 script.
 
 ## Dependencies and prerequisites
 This script was tested on Ubuntu 16.04 & 18.04 and RedHat / Centos 6 & 7. There are no root privileges required to read from `/proc/net/dev`. 
-This script needs a temp file to store the metrics from the last check and compare the delta. Per default, it will use `/tmp/' + args.device + '_check_net_dev.tmp`. You can override this by specifying another file by using `--temp-file` you want to use another location due to any restrictions in your environment.
+This script needs a temp file to store the metrics from the last check and compare the delta. Per default, it will use `/tmp/' + args.device + '_check_linux_net_dev.tmp`. You can override this by specifying another file by using `--temp-file` you want to use another location due to any restrictions in your environment.
 
 ## Usage
-Run `./check_net_dev -h` for a detailed help message and overview of all supported parameters.
+Run `./check_linux_net_dev -h` for a detailed help message and overview of all supported parameters.
 
 
 ## Examples
 ### Without thresholds
-`./check_net_dev -d wlan0 --svc-chk-interval 60` - network device statistics for wlan0
-`./check_net_dev -d tun0 --svc-chk-interval 300` - network device statistics for tun0 with a service check interval of 300 seconds
+`./check_linux_net_dev -d wlan0 --svc-chk-interval 60` - network device statistics for wlan0
+`./check_linux_net_dev -d tun0 --svc-chk-interval 300` - network device statistics for tun0 with a service check interval of 300 seconds
 
 ### With thresholds
-`./check_net_dev -d wlan0 --svc-chk-interval 60 --tx-bytes-warn 300` - network device statistics for tun0 with a warning threshold for transmitted bytes of 300
-`./check_net_dev -d wlan0 --svc-chk-interval 60 --tx-bytes-wanr 300 --rx-bytes-crit 3000 --tx-drops-crit 1000 --tx-errors-warn 100` same as above + additional thresholds
+`./check_linux_net_dev -d wlan0 --svc-chk-interval 60 --tx-bytes-warn 300` - network device statistics for tun0 with a warning threshold for transmitted bytes of 300
+`./check_linux_net_dev -d wlan0 --svc-chk-interval 60 --tx-bytes-wanr 300 --rx-bytes-crit 3000 --tx-drops-crit 1000 --tx-errors-warn 100` same as above + additional thresholds
 
 
 ## Roadmap for the next version:
