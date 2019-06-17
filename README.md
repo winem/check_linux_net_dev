@@ -34,8 +34,8 @@ Run `./check_net_dev -h` for a detailed help message and overview of all support
 `./check_net_dev -d wlan0 --svc-chk-interval 60 --tx-bytes-wanr 300 --rx-bytes-crit 3000 --tx-drops-crit 1000 --tx-errors-warn 100` same as above + additional thresholds
 
 
-## Current ideas for further improvements:
-  - generic handling of thresholds (i.e. not only if rx bytes > x; but also rx bytes < y)
+## Roadmap for the next version:
+  - generic handling of thresholds for any value 
   - be more user-friendly (i.e. input validation and sanity checks & a warning if warn > crit)
   - additional testing in container
   - review for more robust error and exception handling
