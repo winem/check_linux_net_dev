@@ -27,10 +27,12 @@ Run `./check_linux_net_dev -h` for a detailed help message and overview of all s
 ## Examples
 ### Without thresholds
 `./check_linux_net_dev -d wlan0 --svc-chk-interval 60` - network device statistics for wlan0
+
 `./check_linux_net_dev -d tun0 --svc-chk-interval 300` - network device statistics for tun0 with a service check interval of 300 seconds
 
 ### With thresholds
 `./check_linux_net_dev -d wlan0 --svc-chk-interval 60 --tx-bytes-warn 300` - network device statistics for tun0 with a warning threshold for transmitted bytes of 300
+
 `./check_linux_net_dev -d wlan0 --svc-chk-interval 60 --tx-bytes-wanr 300 --rx-bytes-crit 3000 --tx-drops-crit 1000 --tx-errors-warn 100` same as above + additional thresholds
 
 
