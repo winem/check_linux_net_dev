@@ -1,4 +1,4 @@
-# check_linux__net_dev
+# check_linux_net_dev
 
 Check Linux network interfaces without SNMP.
 
